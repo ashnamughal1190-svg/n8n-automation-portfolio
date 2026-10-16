@@ -47,10 +47,6 @@ n8n, Google Gemini API, Google Sheets, Gmail
 
 ## Known limits
 - AI replies are sent automatically without human review. For real clients, add an approval step, at least for Hot leads.
-- Each submission is logged as a new row, so repeat enquiries from one person create multiple rows
-- Check that the Gemini model name in the model node is available in your account
+t
 
-## Ideas for next versions
-- Add a human approval step before sending replies
-- Notify the team in Slack as well as email
-- Add a weekly summary of new leads
+
