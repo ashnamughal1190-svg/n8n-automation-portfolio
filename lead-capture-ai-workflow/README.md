@@ -13,6 +13,19 @@ The demo business, "Brightpath Digital Marketing", is fictional.
 6. **Hot-lead alert** emails the team with the lead's details and summary
 7. **Error workflow** emails the owner if any step fails
 
+## Screenshots
+**Workflow canvas**
+
+![Workflow canvas](screenshots/canvas.png)
+
+**Leads logged in Google Sheets (dummy data)**
+
+![Google Sheet with test leads](screenshots/sheets.png)
+
+**Hot-lead alert email**
+
+![Hot lead alert](screenshots/hot-alert.PNG)
+
 ## Safety features
 - The prompt treats form content as data and ignores instructions written inside a lead's message (prompt-injection guard)
 - Spam leads are logged but never emailed
@@ -23,7 +36,7 @@ The demo business, "Brightpath Digital Marketing", is fictional.
 n8n, Google Gemini API, Google Sheets, Gmail
 
 ## Setup
-1. Import `lead-capture-ai-workflow.json` in n8n (Import from file)
+1. Import `workflow.json` in n8n (Import from file)
 2. Add your own credentials: Google Gemini (API key), Google Sheets and Gmail. No credentials are stored in this file.
 3. Create a Google Sheet with these headers in row 1:
    `Name, Email, Phone, Company name, Service interested in, Budget range, Message, Timestamp, Priority, Summary, Reply draft, Status`
