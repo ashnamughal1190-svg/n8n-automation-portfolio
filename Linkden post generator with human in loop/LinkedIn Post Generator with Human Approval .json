@@ -1,0 +1,378 @@
+{
+  "name": "LinkedIn Post Generator with Human Approval",
+  "nodes": [
+    {
+      "parameters": {
+        "formTitle": "Idea for LinkedIn Post",
+        "formDescription": "Enter an idea and an AI-drafted LinkedIn post will be emailed to you for approval.",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "idea",
+              "requiredField": true
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.formTrigger",
+      "typeVersion": 2.6,
+      "position": [
+        -576,
+        -32
+      ],
+      "id": "4e3a432c-9d95-4ef5-8746-46e843957c76",
+      "name": "Idea Form",
+      "webhookId": "2f6ebe45-8af4-4e88-95d6-a924c629540e"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $('Idea Form').first().json.idea }}",
+        "options": {
+          "systemMessage": "You are an expert social media manager. Write a LinkedIn post of up to 100 words based on the idea provided by the user. Use a professional, engaging tone with correct grammar and spelling. You may use Wikipedia as a reference for facts. Output only the final post text, with no preamble or explanation."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        -384,
+        -32
+      ],
+      "id": "200f70bc-55fa-48f4-8766-a195d8ec7e60",
+      "name": "Draft Post"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-4o-mini",
+          "mode": "list",
+          "cachedResultName": "gpt-4o-mini"
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        -384,
+        144
+      ],
+      "id": "ea0a9fa2-2718-442a-b8a7-553e158dc816",
+      "name": "Draft Post Model"
+    },
+    {
+      "parameters": {},
+      "type": "@n8n/n8n-nodes-langchain.toolWikipedia",
+      "typeVersion": 1,
+      "position": [
+        -256,
+        160
+      ],
+      "id": "8404698f-acb4-4f62-ab96-1f38eb1a02f1",
+      "name": "Wikipedia"
+    },
+    {
+      "parameters": {
+        "operation": "sendAndWait",
+        "sendTo": "YOUR_EMAIL@example.com",
+        "subject": "Approve the LinkedIn post",
+        "message": "={{ $json.output }}",
+        "approvalOptions": {
+          "values": {
+            "approvalType": "double"
+          }
+        },
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        -16,
+        -32
+      ],
+      "id": "d55a8ce7-f7a6-4c71-b78f-69333070a9ba",
+      "name": "Email Approval",
+      "webhookId": "3d268d3b-4d39-483d-aaee-bd7b6fd19fad"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "7d466b32-dc75-45da-818e-789c2378ca0f",
+              "leftValue": "={{ $json.data.approved }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        160,
+        -32
+      ],
+      "id": "05a0ed2c-9cda-4bcc-a77d-d0cbf8c394b5",
+      "name": "Approved?"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Write an image generation prompt for a visual to accompany this LinkedIn post:\n\n{{ $('Draft Post').last().json.output }}",
+        "options": {
+          "systemMessage": "You write prompts for AI image generation. Given a LinkedIn post, produce one clear, detailed prompt describing a professional, visually appealing image that fits the post. Do not include any text or words inside the image. Output only the prompt."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        432,
+        -48
+      ],
+      "id": "5d16731f-d3c3-45be-aa96-98ea353ba7fd",
+      "name": "Image Prompt"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-4o-mini",
+          "mode": "list",
+          "cachedResultName": "gpt-4o-mini"
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        448,
+        160
+      ],
+      "id": "7fde97f8-3e5d-4a5a-9ffc-5fc692c25e2e",
+      "name": "Image Prompt Model"
+    },
+    {
+      "parameters": {
+        "resource": "image",
+        "modelId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-image-1-mini"
+        },
+        "prompt": "={{ $json.output }}",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 2.3,
+      "position": [
+        752,
+        -48
+      ],
+      "id": "45700a7e-d940-4221-8c96-8f17c75f022d",
+      "name": "Generate Image"
+    },
+    {
+      "parameters": {
+        "person": "YOUR_LINKEDIN_PERSON_ID",
+        "text": "={{ $('Draft Post').last().json.output }}",
+        "shareMediaCategory": "IMAGE",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.linkedIn",
+      "typeVersion": 1,
+      "position": [
+        928,
+        -48
+      ],
+      "id": "fc733440-9468-4338-ab67-45bab17bde2e",
+      "name": "Publish to LinkedIn"
+    },
+    {
+      "parameters": {
+        "content": "## 1. Draft\nThe form collects an idea. An AI agent (with Wikipedia as an optional reference) writes a LinkedIn post of up to 100 words.",
+        "height": 156,
+        "width": 420,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -608,
+        -240
+      ],
+      "id": "d8f05f0d-0470-4dbd-8fb1-77e426369254",
+      "name": "Note: Draft"
+    },
+    {
+      "parameters": {
+        "content": "## 2. Human approval\nThe draft is emailed with Approve / Disapprove buttons. The workflow pauses until you respond.\n\nApprove: continue to image.\nDisapprove: the draft is regenerated.",
+        "height": 204,
+        "width": 340,
+        "color": 3
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -128,
+        -256
+      ],
+      "id": "3c463e4f-676a-41a1-ae1c-66fd05f561ae",
+      "name": "Note: Approval"
+    },
+    {
+      "parameters": {
+        "content": "## 3. Image and publish\nAn image prompt is generated from the approved post, the image is created, and both are published to LinkedIn.",
+        "height": 172,
+        "width": 700,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        304,
+        -272
+      ],
+      "id": "6ba7b010-a48f-4b57-89a0-f897708b972d",
+      "name": "Note: Publish"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Idea Form": {
+      "main": [
+        [
+          {
+            "node": "Draft Post",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Draft Post Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Draft Post",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wikipedia": {
+      "ai_tool": [
+        [
+          {
+            "node": "Draft Post",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Draft Post": {
+      "main": [
+        [
+          {
+            "node": "Email Approval",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Email Approval": {
+      "main": [
+        [
+          {
+            "node": "Approved?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Approved?": {
+      "main": [
+        [
+          {
+            "node": "Image Prompt",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Draft Post",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Image Prompt Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Image Prompt",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Image Prompt": {
+      "main": [
+        [
+          {
+            "node": "Generate Image",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate Image": {
+      "main": [
+        [
+          {
+            "node": "Publish to LinkedIn",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "7e8de0cf-0d91-487c-81e8-cdfb264e931c",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "c6572e1b0d305e9fcf28bc38d30c0648a73693e07512f7776b6226999c0678dc"
+  },
+  "nodeGroups": [],
+  "id": "a0pCFwBsENFVaQvX",
+  "tags": []
+}
